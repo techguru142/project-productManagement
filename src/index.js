@@ -1,10 +1,11 @@
 const express = require("express")
 const route = require("./routes/route")
+const bodyParser = require('body-parser')
 const multer =require('multer')
 const app = express()
 const mongoose = require("mongoose")
 
-app.use(express.json())
+app.use(bodyParser.json())
 app.use(multer().any())
 
 mongoose.connect("mongodb+srv://tech-guru:Job7563@cluster0.ivxxx.mongodb.net/group57Database-DB?retryWrites=true&w=majority",
