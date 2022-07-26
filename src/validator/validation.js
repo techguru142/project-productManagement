@@ -1,3 +1,5 @@
+const mongoose = require('mongoose')
+
 const isValid = function (value) {
     if ( typeof value == null) return false;
     if (typeof value === "string" && value.trim().length === 0) return false;
@@ -30,8 +32,8 @@ const isValidPincode = function(num){
     return /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,15}$/.test(Password)
   }
 
-  const isValidObjectId = function(objectId) {
-    return mongoose.Types.ObjectId.isValid(objectId)
+  const isValidObjectId = function(ObjectId) {
+    return mongoose.Types.ObjectId.isValid(ObjectId)
   }
   
   

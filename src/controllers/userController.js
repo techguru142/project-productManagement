@@ -1,6 +1,6 @@
 const userModel = require('../models/userModel')
 const awsController = require("../controllers/awsController")
-const { isValid, isValidRequest,isValidName, isValidPincode, isValidEmail, isValidPhone, isValidPwd } = require('../validator/validation')
+const { isValid, isValidRequest,isValidName, isValidPincode, isValidEmail, isValidPhone, isValidPwd,isValidObjectId } = require('../validator/validation')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
@@ -136,10 +136,12 @@ const loginUser = async function (req, res) {
 const getUser = async function(req, res){
     try{
       let userId = req.params.userId;
-    
-      
+
+    if(!isValidObjectId(userId)) return res.status(400).send({status:false, message:"invalid object id"})
+  
       const user = await userModel.findOne({ _id: userId})
-      return res.status(200).send({ status: true, message: 'User Profile Details', data: userData})
+      if(!user) return res.status(400).send({status:false, message:"invalid user id"})
+      return res.status(200).send({ status: true, message: 'User Profile Details', data: user})
     }catch (err) {
       res.status(500).send({ status: false, error: err.message })
     }
