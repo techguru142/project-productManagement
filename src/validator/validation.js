@@ -36,6 +36,8 @@ const isValidPincode = function(num){
     return mongoose.Types.ObjectId.isValid(ObjectId)
   }
   
-  
 
-module.exports={isValid, isValidRequest,isValidName ,isValidPincode, isValidPhone,isValidEmail,isValidPwd,isValidObjectId}
+
+
+
+module.exports={isValid, isValidRequest,isValidName ,isValidPincode, isValidPhone,isValidEmail,isValidPwd,isValidObjectId,}
