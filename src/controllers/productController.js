@@ -1,6 +1,6 @@
-const Product = require('../models/productModel')
+const productModel = require('../models/productModel')
 const awsController = require("../controllers/awsController")
-const { isValid, isValidRequest } = require('../validator/validation')
+const { isValid, isValidRequest, isValidObjectId } = require('../validator/validation')
 
 
 
@@ -30,6 +30,9 @@ const addProduct = async function (req, res) {
 
         if (isNaN(price)) return res.status(400).send({ status: false, message: "price value should be number only" })
         if (!isValid(price)) return res.status(400).send({ status: false, message: "Price is empty" })
+        if (price <= 0) {
+            return res.status(400).send({ status: false, message:"price can not be lessthan or equal to zero" })
+        }
 
         if (isFreeShipping) {
             if (!['true', 'false'].includes(isFreeShipping)) return res.status(400).send({ status: false, message: "isFreeShipping value should only true or false" })
@@ -55,15 +58,15 @@ const addProduct = async function (req, res) {
         }
 
         //----------------------------CHECK UNIQUE VALUE OF TITLE-----------------------------------------------------//
-        let checkTitle = await Product.findOne({ title: data.title });
+        let checkTitle = await productModel.findOne({ title: data.title });
         if (checkTitle) return res.status(400).send({ status: false, message: "Title already exist" });
         //--------------------------------------------VALIDATE FILE AND SET FILE URL IN PRODUCT IMAGE-------------------// 
-        mimetype = files[0].mimetype.split("/") //---["image",""]
+        let  mimetype = files[0].mimetype.split("/") //---["image",""]
         if (mimetype[0] !== "image") return res.status(400).send({ status: false, message: "Please Upload the Image File only" })
         if (files && files.length > 0) var uploadedFileURL = await awsController.uploadFile(files[0])
         data.productImage = uploadedFileURL
 
-        let createProduct = await Product.create(data) //CREATE REQUESTED DATA DOCUMENTS
+        let createProduct = await productModel.create(data) //CREATE REQUESTED DATA DOCUMENTS
         res.status(201).send({ status: true, message: "success", data: createProduct })
     }
     catch (err) {
@@ -155,109 +158,148 @@ const updateProduct = async function (req, res) {
 
     try {
         const data = req.body
+        const files = req.files
         const productId = req.params.productId
-        let files = req.files;
+       
 
 
         if (!isValidObjectId(productId)) {
             return res.status(400).send({ status: false, message: "Invalid ProductId" })
         }
 
-        const checkProduct = await Product.findOne({ _id: productId, isDeleted: false })
+        const productCheck = await productModel.findOne({ _id: productId, isDeleted: false })
 
-        if (!checkProduct) {
+        if (!productCheck) {
             return res.status(404).send({ status: false, message: "product not found" })
         }
-
-        if (!isValidRequestBody(data)) {
+        if(data.length !==0){
+        if (!isValidRequest(data)) {
             return res.status(400).send({ status: false, message: "please provide product details to update" })
+        }}
 
-        }
+        const { title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments,} = data
 
-        const { title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments, productImage } = data
+        const updatedProductDetails = {}
 
-
-
-
-
-
-        if (!isValidString(title)) {
-            return res.status(400).send({ status: false, message: "Invalid format of Title", });
-        }
-
-        const titleCheck = await Product.findOne({ title: title });
-
-        if (titleCheck) {
-            return res.status(400).send({ status: false, message: `${data.title} This Title Already Exist.Please Give Another Title` })
-        }
-
-
-        if (!isValidString(description)) {
-            return res.status(400).send({ status: false, message: "Invalid format of description", });
-        }
-
-
-
-        if (!isValidString(price) || price <= 0) {
-            return res.status(400).send({ status: false, message: "Invalid Format of price it should be number and must be positive numbers" });
-
-        }
-
-        if (!isValid(currencyId)) {
-            return res.status(400).send({ status: false, message: "currencyId required" })
-        }
-
-
-        if (currencyId.trim() != "INR") {
-            return res.status(400).send({ status: false, message: "Please provide Indian currencyId" });
-        }
-
-
-        if (!isValid(currencyFormat)) {
-            return res.status(400).send({ status: false, message: "currency format required" })
-        }
-
-
-        if (currencyFormat.trim() != "₹") {
-            return res.status(400).send({ status: false, message: "Please provide correct currencyFormat" });
-        }
-
-
-
-        if (!((isFreeShipping === "true") || (isFreeShipping === "false"))) {
-            return res.status(400).send({ status: false, message: 'isFreeShipping should be a boolean value' })
-        }
-
-        if (!isValidString(style)) {
-            return res.status(400).send({ status: false, message: "Invalid format of style", });
-        }
-
-        if (availableSizes) {
-            let arr = availableSizes.split(",").map(a => a.toUpperCase())
-            for (let i = 0; i < arr.length; i++) {
-                if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(arr[i])) {
-                    return res.status(400).send({ status: false, message: "available size should be only atleast one of these: S, XS,M,X, L,XXL, XL " })
-                }
+       
+        if (title) {
+            if (!isValid(title)) {
+                return res.status(400).send({ status: false, message: "Title is required" })
             }
+            if (!isNaN(title)) return res.status(400).send({ status: false, message: "title can not be number only" })
+            const checkTitle = await productModel.findOne({ title: title });
+
+            if (checkTitle) {
+                return res.status(400).send({ status: false, message: ` Title is already used` })
+            }
+
+            updatedProductDetails['title'] = title
         }
 
+        if (description) {
+            if (!isValid(description)) {
+                return res.status(400).send({ status: false, message: `Description is required` })
+            }
+            if (!isNaN(description)) return res.status(400).send({ status: false, message: "Description can not be number only" })
+    
+            updatedProductDetails['description'] = description
+        }
+
+        
+        if (price) {
+
+            if (!isValid(price)) {
+                return res.status(400).send({ status: false, message: `price is required` })
+            }
+            if (isNaN(Number(price))) {
+                return res.status(400).send({ status: false, message: `Price should be a valid number` })
+            }
+            if (price <= 0) {
+                return res.status(400).send({ status: false, message:"price can not be lessthan or equal to zero" })
+            }
+
+            updatedProductDetails['price'] = price
+        }
+        if (isFreeShipping) {
+            if (!['true', 'false'].includes(isFreeShipping)) return res.status(400).send({ status: false, message: "isFreeShipping value should only true or false" })
+            if (isFreeShipping.trim().length == 0) return res.status(400).send({ status: false, message: "isFreeShipping contains empty value" })
+        }
+
+        if (currencyId) {
+            if (currencyId != "INR") {
+                return res.status(400).send({ status: false, message: 'currencyId should be a INR' })
+            }
+            if (!isValid(currencyId)) {
+                return res.status(400).send({ status: false, message: `currencyId is required` })
+            }
+            updatedProductDetails['currencyId'] = currencyId;
+        }
+
+        
+        if (currencyFormat) {
+            if (!isValid(currencyFormat)) {
+                return res.status(400).send({ status: false, message: `currency format is required` })
+            }
+    
+            if (currencyFormat != "₹") {
+                return res.status(400).send({ status: false, message: "Please provide currencyFormat in format ₹ only" })
+            }
+            updatedProductDetails['currencyFormat'] = currencySymbol('INR')
+        }
+
+        if (isFreeShipping) {
+
+            if (!['true', 'false'].includes(isFreeShipping)) return res.status(400).send({ status: false, message: "isFreeShipping value should only true or false" })
+            if (isFreeShipping.trim().length == 0) return res.status(400).send({ status: false, message: "isFreeShipping contains empty value" })
+            updatedProductDetails['isFreeShipping'] = isFreeShipping
+        }
+
+      
+        if (style) {
+            if (!isValid(style)) {
+                return res.status(400).send({ status: false, message: `style is required` })
+            }
+            //if (!isNaN(style)) return res.status(400).send({ status: false, message: "style cann't be number only" })
+
+            updatedProductDetails['style'] = style
+        }
+
+        if (!isValid(availableSizes)) {
+            return res.status(400).send({ status: false, message: `size is required` })
+        }
+
+       
+        // let arr = availableSizes.split(",").map(a => a.toUpperCase())
+        // for (let i = 0; i < arr.length; i++) {
+        //     if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(arr[i])) {
+        //         return res.status(400).send({ status: false, message: "available size should be only atleast one of these: S, XS,M,X, L,XXL, XL " })
+        //     }
+        // }
+        // updatedProductDetails.availableSizes = arr 
+
+        if (!isValid(installments)) {
+            return res.status(400).send({ status: false, message: `installment is required` })
+        }
         if (installments) {
 
-
-            if (!isValidString(installments) || installments <= 0) {
-                return res.status(400).send({ status: false, message: "Invalid Format of installments it should be number and should be greater than zero" });
+            if (!Number.isInteger(Number(installments))) {
+                return res.status(400).send({ status: false, message: `installments should be a valid number` })
             }
+
+            updatedProductDetails['installments'] = installments
         }
-
-
-
-        const updatedProduct = await Product.findOneAndUpdate(
+        if(files){
+        let mimetype = files[0].mimetype.split("/") //---["image",""]
+        if (mimetype[0] !== "image") return res.status(400).send({ status: false, message: "Please Upload the Image File only" })
+        if (files && files.length > 0) var uploadedFileURL = await awsController.uploadFile(files[0])
+        updatedProductDetails.productImage = uploadedFileURL
+        }
+        const updatedProduct = await productModel.findOneAndUpdate(
             { _id: productId },
-
+            updatedProductDetails,
             { new: true })
 
         return res.status(200).send({ status: true, message: 'Product details updated successfully.', data: updatedProduct });
-
     } catch (err) {
         return res.status(500).send({ status: false, error: err.message })
     }
@@ -273,7 +315,7 @@ const deleteProductById = async function (req, res) {
         if (!checkProductInDb) {
             return res.status(404).send({ status: false, message: 'no product found' })
         }
-        const deleteProduct = await productModel.findByIdAndUpdate(checkProductInDb._id, { $set: { isDeleted: true } })
+        const deleteProduct = await productModel.findByIdAndUpdate(checkProductInDb._id, { $set: { isDeleted: true, deletedAt: new Date() } })
         return res.status(200).send({ status: true, message: 'Product Deleted' })
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message });
