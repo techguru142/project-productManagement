@@ -268,14 +268,6 @@ const updateProduct = async function (req, res) {
             return res.status(400).send({ status: false, message: `size is required` })
         }
 
-       
-        // let arr = availableSizes.split(",").map(a => a.toUpperCase())
-        // for (let i = 0; i < arr.length; i++) {
-        //     if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(arr[i])) {
-        //         return res.status(400).send({ status: false, message: "available size should be only atleast one of these: S, XS,M,X, L,XXL, XL " })
-        //     }
-        // }
-        // updatedProductDetails.availableSizes = arr 
 
         if (!isValid(installments)) {
             return res.status(400).send({ status: false, message: `installment is required` })
