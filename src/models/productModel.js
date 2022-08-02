@@ -52,7 +52,8 @@
       type: Number
   },
     deletedAt: {
-      type: Date
+      type: Date,
+      default:null
   },
     isDeleted: {
       type: Boolean,

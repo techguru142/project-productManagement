@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {userRegistration, loginUser,getUser, updateUser }= require('../controllers/userController')
 const {addProduct,findProduct, findProductById,deleteProductById,updateProduct} = require('../controllers/productController')
-//const awsController=require("../controllers/awsController")
+const {addToCart, updateCart} = require('../controllers/cartController')
 
 //**************USER APIs*********************//
 router.post('/register', userRegistration );
@@ -17,6 +17,9 @@ router.get('/products/:productId',findProductById);
 router.put('/products/:productId', updateProduct);
 router.delete('/products/:productId',deleteProductById);
 
+//**************CART APIs*************************//
+router.post('/users/:userId/cart',addToCart)
+router.put('/users/:userId/cart', updateCart)
 
 //**************VALIDATE APIs*********************//
 router.all("/**", function (req, res) {
