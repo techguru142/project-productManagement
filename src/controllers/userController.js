@@ -74,7 +74,7 @@ const userRegistration = async function (req, res) {
         const saltRounds = 10;
         userData.password = bcrypt.hashSync(password, saltRounds)
         //----------------------------------------SEND IMAGE TO AWS-----------------------------------------------//
-        mimetype = files[0].mimetype.split("/") //---["image",""]
+        let mimetype = files[0].mimetype.split("/") //---["image",""]
         if (mimetype[0] !== "image") return res.status(400).send({ status: false, message: "Please Upload the Image File only" })
         if (files && files.length > 0) var uploadedFileURL = await awsController.uploadFile(files[0])
         userData.profileImage = uploadedFileURL
@@ -91,10 +91,10 @@ const getUser = async function (req, res) {
     try {
         let userId = req.params.userId;
 
-        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "invalid object id" })
+        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "invalid user id" })
 
         const user = await userModel.findOne({ _id: userId })
-        if (!user) return res.status(400).send({ status: false, message: "invalid user id" })
+        if (!user) return res.status(400).send({ status: false, message: "User data not found" })
         return res.status(200).send({ status: true, message: 'User Profile Details', data: user })
     } catch (err) {
         res.status(500).send({ status: false, error: err.message })
@@ -124,9 +124,9 @@ const loginUser = async function (req, res) {
             res.status(400).send({ staus: false, message: "password value is empty" });
             return;
         }
-        const userExist = await userModel.findOne({ email: email });
+        const userExist = await userModel.findOne({ email: email, password:password });
         if (!userExist) {
-            res.status(401).send({ staus: false, message: "Invalid email" });
+            res.status(401).send({ staus: false, message: "Invalid email, password" });
             return;
         }
         const validateUser = await bcrypt.compare(password, userExist.password);
