@@ -170,12 +170,12 @@ const updateProduct = async function (req, res) {
         const productCheck = await productModel.findOne({ _id: productId, isDeleted: false })
 
         if (!productCheck) {
-            return res.status(404).send({ status: false, message: "product not found" })
+            return res.status(404).send({ status: false, message: "Product not found or deleted" })
         }
-        if(data.length !==0){
+        
         if (!isValidRequest(data)) {
             return res.status(400).send({ status: false, message: "please provide product details to update" })
-        }}
+        }
 
         const { title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments,} = data
 
@@ -184,7 +184,7 @@ const updateProduct = async function (req, res) {
        
         if (title) {
             if (!isValid(title)) {
-                return res.status(400).send({ status: false, message: "Title is required" })
+                return res.status(400).send({ status: false, message: "Title is empty" })
             }
             if (!isNaN(title)) return res.status(400).send({ status: false, message: "title can not be number only" })
             const checkTitle = await productModel.findOne({ title: title });
@@ -198,7 +198,7 @@ const updateProduct = async function (req, res) {
 
         if (description) {
             if (!isValid(description)) {
-                return res.status(400).send({ status: false, message: `Description is required` })
+                return res.status(400).send({ status: false, message: `Description is empty` })
             }
             if (!isNaN(description)) return res.status(400).send({ status: false, message: "Description can not be number only" })
     
@@ -209,7 +209,7 @@ const updateProduct = async function (req, res) {
         if (price) {
 
             if (!isValid(price)) {
-                return res.status(400).send({ status: false, message: `price is required` })
+                return res.status(400).send({ status: false, message: `price is empty` })
             }
             if (isNaN(Number(price))) {
                 return res.status(400).send({ status: false, message: `Price should be a valid number` })
@@ -226,19 +226,20 @@ const updateProduct = async function (req, res) {
         }
 
         if (currencyId) {
+            if (!isValid(currencyId)) {
+                return res.status(400).send({ status: false, message: `currencyId is empty` })
+            }
             if (currencyId != "INR") {
                 return res.status(400).send({ status: false, message: 'currencyId should be a INR' })
             }
-            if (!isValid(currencyId)) {
-                return res.status(400).send({ status: false, message: `currencyId is required` })
-            }
+           
             updatedProductDetails['currencyId'] = currencyId;
         }
 
         
         if (currencyFormat) {
             if (!isValid(currencyFormat)) {
-                return res.status(400).send({ status: false, message: `currency format is required` })
+                return res.status(400).send({ status: false, message: `currency format is empty` })
             }
     
             if (currencyFormat != "₹") {
@@ -257,22 +258,32 @@ const updateProduct = async function (req, res) {
       
         if (style) {
             if (!isValid(style)) {
-                return res.status(400).send({ status: false, message: `style is required` })
+                return res.status(400).send({ status: false, message: `style is empty` })
             }
-            //if (!isNaN(style)) return res.status(400).send({ status: false, message: "style cann't be number only" })
+            if (!isNaN(style)) return res.status(400).send({ status: false, message: "style cann't be number only" })
 
             updatedProductDetails['style'] = style
         }
-
+        
+        if(availableSizes){
         if (!isValid(availableSizes)) {
-            return res.status(400).send({ status: false, message: `size is required` })
+            return res.status(400).send({ status: false, message: `size is empty` })
         }
+        let arr = availableSizes.split(",").map(a => a.toUpperCase())
+        for (let i = 0; i < arr.length; i++) {
+            if (!["S", "XS", "M", "X", "L", "XXL", "XL"].includes(arr[i])) {
+                return res.status(400).send({ status: false, message: "available size should be only atleast one of these: S, XS,M,X, L,XXL, XL " })
+            }
+        }
+        updatedProductDetails['availableSizes'] = arr
+    }
 
 
-        if (!isValid(installments)) {
-            return res.status(400).send({ status: false, message: `installment is required` })
-        }
+        
         if (installments) {
+            if (!isValid(installments)) {
+                return res.status(400).send({ status: false, message: `installment is required` })
+            }
 
             if (!Number.isInteger(Number(installments))) {
                 return res.status(400).send({ status: false, message: `installments should be a valid number` })
@@ -308,7 +319,7 @@ const deleteProductById = async function (req, res) {
             return res.status(404).send({ status: false, message: 'no product found' })
         }
         const deleteProduct = await productModel.findByIdAndUpdate(checkProductInDb._id, { $set: { isDeleted: true, deletedAt: new Date() } })
-        return res.status(200).send({ status: true, message: 'Product Deleted' })
+        return res.status(200).send({ status: true, message: 'Product Deleted', data:deleteProduct})
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message });
     }

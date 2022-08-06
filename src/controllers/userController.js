@@ -33,15 +33,24 @@ const userRegistration = async function (req, res) {
         //--------------------------------------------------SHIPPING ADDRESS VALIDATION-----------------------------------------------/
         if (!shipping) return res.status(400).send({ status: false, message: "Shipping Address is required " })
         if (!shipping.street) return res.status(400).send({ status: false, message: "Shipping street is required" })
+        if (!isValid(shipping.street)) return res.status(400).send({ status: false, message: "Shipping street is empty" })
+        if (!isNaN(shipping.street))return res.status(400).send({ status: false, message: "Shipping street can not be number only" })
         if (!shipping.city) return res.status(400).send({ status: false, message: "Shipping city is required" })
+        if (!isValid(shipping.city))return res.status(400).send({ status: false, message: "Shipping city is empty" })
+        if (!isNaN(shipping.city)) return res.status(400).send({ status: false, message: "Shipping city can not be number only" })
         if (!shipping.pincode) return res.status(400).send({ status: false, message: "Shipping pincode is required" })
+        if (!isValid(shipping.pincode))return res.status(400).send({ status: false, message: "Shipping pincode is empty" })
         if (!isValidPincode(shipping.pincode)) {
             return res.status(400).send({ status: false, message: `${shipping.pincode} ,Shipping pincode must be of six digits` })
         }
         //--------------------------------------------------BILLING ADDRESS VALIDATION-----------------------------------------------/
         if (!billing) return res.status(400).send({ status: false, message: "billing Address is required " })
         if (!billing.street) return res.status(400).send({ status: false, message: "Billing street is required " })
+        if (!isValid(billing.street))return res.status(400).send({ status: false, message: "Billing street is empty" })
+        if (!isNaN(billing.street))return res.status(400).send({ status: false, message: "Billing street can not be number only" })
         if (!billing.city) return res.status(400).send({ status: false, message: "Billing city is required " })
+        if (!isValid(billing.city))return res.status(400).send({ status: false, message: "Billing city is empty" })
+        if (!isNaN(billing.city))return res.status(400).send({ status: false, message: "Billing city can not be number only" })
         if (!billing.pincode) return res.status(400).send({ status: false, message: "Billing pincode is required " })
         if (!isValidPincode(billing.pincode)) {
             return res.status(400).send({ status: false, message: `${billing.pincode} ,Billing pincode must be of six digits` })
@@ -87,27 +96,13 @@ const userRegistration = async function (req, res) {
     }
 }
 
-const getUser = async function (req, res) {
-    try {
-        let userId = req.params.userId;
-
-        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "invalid user id" })
-
-        const user = await userModel.findOne({ _id: userId })
-        if (!user) return res.status(400).send({ status: false, message: "User data not found" })
-        return res.status(200).send({ status: true, message: 'User Profile Details', data: user })
-    } catch (err) {
-        res.status(500).send({ status: false, error: err.message })
-    }
-}
-
 
 
 const loginUser = async function (req, res) {
     try {
         const logInDetail = req.body;
         if (!isValidRequest(logInDetail)) {
-            res.status(400).send({ staus: false, message: "some data is required" });
+            res.status(400).send({ staus: false, message: "Body is empty" });
             return;
         }
         const { email, password } = logInDetail;
@@ -124,9 +119,9 @@ const loginUser = async function (req, res) {
             res.status(400).send({ staus: false, message: "password value is empty" });
             return;
         }
-        const userExist = await userModel.findOne({ email: email, password:password });
+        const userExist = await userModel.findOne({ email: email});
         if (!userExist) {
-            res.status(401).send({ staus: false, message: "Invalid email, password" });
+            res.status(401).send({ staus: false, message: "Invalid email or password" });
             return;
         }
         const validateUser = await bcrypt.compare(password, userExist.password);
@@ -155,13 +150,28 @@ const loginUser = async function (req, res) {
     }
 };
 
+//-------------------------------------------FETCH HANDLER-----------------------------------------//
+const getUser = async function (req, res) {
+    try {
+        let userId = req.params.userId;
+
+        if (!isValidObjectId(userId)) return res.status(400).send({ status: false, message: "invalid user id" })
+
+        const user = await userModel.findOne({ _id: userId })
+        if (!user) return res.status(400).send({ status: false, message: "User data not found" })
+        return res.status(200).send({ status: true, message: 'User Profile Details', data: user })
+    } catch (err) {
+        res.status(500).send({ status: false, error: err.message })
+    }
+}
+//-------------------------------------------UPDATE HANDLER-----------------------------------------//
 const updateUser = async function (req, res) {
     try {
         let userBody = req.body;
         const files = req.files;
         const paramUserid = req.params.userId
         // path params id validation
-        if (paramUserid.length !== 24) {
+        if (!isValidObjectId(paramUserid)) {
             return res
                 .status(400)
                 .send({ status: false, message: "userId is not valid" });
@@ -174,7 +184,7 @@ const updateUser = async function (req, res) {
                 .send({ status: false, message: "User not found" });
         }
         // changing object into array and checking length for validation
-        if (Object.keys(userBody).length == 0) {
+        if (!isValidRequest(userBody)) {
             return res
                 .status(400)
                 .send({ status: false, message: "operation fail for update user" });
@@ -187,12 +197,12 @@ const updateUser = async function (req, res) {
 
         // checking phone property is getting or not if getting do some validation 
         if (phone !== undefined) {
-            if (typeof phone !== "string") {
+            if (!isValid(phone)) {
                 return res
                     .status(400)
-                    .send({ status: false, message: "phone should be in string" });
+                    .send({ status: false, message: "phone is empty" });
             }
-            if (!/^([0|\+[0-9]{1,5})?([6-9][0-9]{9})$/.test(phone)) {
+            if (!isValidPhone(phone)) {
                 return res.status(400).send({ status: false, message: "mobile phone is not valid" })
             };
             const checkPhone = await userModel.findOne({ phone: phone })
@@ -205,12 +215,12 @@ const updateUser = async function (req, res) {
         // checking email property is getting or not if getting do some validation 
 
         if (email !== undefined) {
-            if (typeof email !== "string") {
+            if (!isValid(email)) {
                 return res
                     .status(400)
-                    .send({ status: false, message: "email should be in string" });
+                    .send({ status: false, message: "email is empty" });
             }
-            if (!/^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/.test(email)) {
+            if (!isValidEmail(email)) {
                 return res.status(400).send({ status: false, message: `Email should be a valid email address` });
             };
             const checkEmail = await userModel.findOne({ email: email })
@@ -224,7 +234,7 @@ const updateUser = async function (req, res) {
         // checking password property is getting or not if getting do some validation 
 
         if (password !== undefined) {
-            if (!/^(?=.\d)(?=.[a-z])(?=.*[A-Z]).{8,15}$/.test(password)) {
+            if (!isValidPwd(password)) {
                 return res.status(400).send({ status: false, message: `password shoud be minimum 8 to maximum 15 characters which contain at least one numeric digit, one uppercase and one lowercase letter` })
             };
             const hashedPassword = await bcrypt.hash(password, 10)
@@ -234,38 +244,16 @@ const updateUser = async function (req, res) {
         // checking fname property is getting or not if getting do some validation 
 
         if (fname !== undefined) {
-            if (typeof fname !== "string") {
-                return res
-                    .status(400)
-                    .send({ status: false, message: "fname should be in string" });
-            }
-            if (fname.trim().length == 0) {
-                return res
-                    .status(400)
-                    .send({
-                        status: false,
-                        message: "fname should be some data inside string",
-                    });
-            }
+          if(!isValid(fname)) return res.status(400).send({status:false, message:"fname is empty"})
+          if(!isValidName(fname))return res.status(400).send({status:false, message:"fname can not be a number"})
             forUpdateData["fname"] = fname.trim().split(" ").filter(word => word).join(" ");
         }
 
         // checking lname property is getting or not if getting do some validation 
 
         if (lname !== undefined) {
-            if (typeof lname !== "string") {
-                return res
-                    .status(400)
-                    .send({ status: false, message: "lname should be in string" });
-            }
-            if (lname.trim().length == 0) {
-                return res
-                    .status(400)
-                    .send({
-                        status: false,
-                        message: "lname should be some data inside string",
-                    });
-            }
+            if(!isValid(lname)) return res.status(400).send({status:false, message:"lname is empty"})
+          if(!isValidName(lname))return res.status(400).send({status:false, message:"lname can not be a number"})
             forUpdateData["lname"] = lname.trim().split(" ").filter(word => word).join(" ");
         }
 
@@ -292,24 +280,12 @@ const updateUser = async function (req, res) {
 
         if (address !== undefined) {
             forUpdateData['address'] = existUser.address
-            // if (address !== "object") {
-            //   return res
-            //     .status(400)
-            //     .send({ status: false, message: "address Object" });
-            // }
-            // forUpdateData["address"] = {};
+            
             if (address.shipping !== undefined) {
-                // if (address.shipping !== "object") {
-                //   return res
-                //     .status(400)
-                //     .send({ status: false, message: "address Object" });
-                // }
-                // forUpdateData["address"]["shipping"] = {};
 
                 if (address.shipping.street !== undefined) {
                     if (
-                        typeof address.shipping.street !== "string" ||
-                        address.shipping.street.trim().length == 0
+                        !isValid(address.shipping.street)
                     ) {
                         return res
                             .status(400)
@@ -327,8 +303,7 @@ const updateUser = async function (req, res) {
                 }
                 if (address.shipping.city != undefined) {
                     if (
-                        typeof address.shipping.city !== "string" ||
-                        address.shipping.city.trim().length == 0
+                        !isValid(address.shipping.city)
                     ) {
                         return res
                             .status(400)
@@ -342,17 +317,17 @@ const updateUser = async function (req, res) {
                 }
 
                 if (address.shipping.pincode !== undefined) {
-                    if (typeof address.shipping.pincode !== "number") {
+                    if (isNaN(address.shipping.pincode)) {
                         return res
                             .status(400)
                             .send({ status: false, message: "pincode can only be Number" });
                     }
-                    if (!/^[0-9]{6}$/.test(address.shipping.pincode)) {
+                    if (!isValidPincode(address.shipping.pincode)) {
                         return res
                             .status(400)
                             .send({
                                 status: false,
-                                message: "pincode length must be 6 and contains number",
+                                message: "pincode length must be 6 and does not starts with 0",
                             });
                     }
                     forUpdateData["address"]["shipping"]["pincode"] =
@@ -363,17 +338,9 @@ const updateUser = async function (req, res) {
 
             if (address.billing !== undefined) {
 
-                // if (address.billing !== "object") {
-                //   return res
-                //     .status(400)
-                //     .send({ status: false, message: "address Object" });
-                // }
-                // forUpdateData["address"]["billing"] = {};
-
                 if (address.billing.street !== undefined) {
                     if (
-                        typeof address.billing.street !== "string" ||
-                        address.billing.street.trim().length == 0
+                        !isValid(address.billing.street )
                     ) {
                         return res
                             .status(400)
@@ -391,8 +358,7 @@ const updateUser = async function (req, res) {
                 }
                 if (address.billing.city != undefined) {
                     if (
-                        typeof address.billing.city !== "string" ||
-                        address.billing.city.trim().length == 0
+                        !isValid(address.billing.city)
                     ) {
                         return res
                             .status(400)
@@ -406,17 +372,17 @@ const updateUser = async function (req, res) {
                 }
 
                 if (address.billing.pincode !== undefined) {
-                    if (typeof address.billing.pincode !== "number") {
+                    if (isNaN(address.billing.pincode)) {
                         return res
                             .status(400)
                             .send({ status: false, message: "pincode can only be Number" });
                     }
-                    if (!/^[0-9]{6}$/.test(address.billing.pincode)) {
+                    if (!isValidPincode(address.billing.pincode)) {
                         return res
                             .status(400)
                             .send({
                                 status: false,
-                                message: "pincode length must be 6 and contains number",
+                                message: "pincode length must be 6 and does not starts 0 ",
                             });
                     }
                     forUpdateData["address"]["billing"]["pincode"] =

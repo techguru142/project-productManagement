@@ -23,11 +23,11 @@ router.delete('/products/:productId',deleteProductById);
 router.post('/users/:userId/cart',addToCart)
 router.get('/users/:userId/cart',authentication, getCart)
 router.delete('/users/:userId/cart',authorization, deleteCart)
-router.put('/users/:userId/cart', updateCart)
+router.put('/users/:userId/cart',authorization, updateCart)
 
 //***************ORDER APIs***********************//
-router.post('/users/:userId/orders', createOrder)
-router.put('/users/:userId/orders',updateOrder)
+router.post('/users/:userId/orders',authorization, createOrder)
+router.put('/users/:userId/orders',authorization, updateOrder)
 
 //**************VALIDATE APIs*********************//
 router.all("/**", function (req, res) {

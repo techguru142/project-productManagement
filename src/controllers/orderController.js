@@ -10,6 +10,7 @@ const createOrder = async function(req, res){
         if(!isValidRequest(data)) return res.status(400).send({status:false, message:"Body is empty"})
         //---------------------------VALIDATE USER ID---------------------//
         if(!isValidObjectId(userId))return res.status(400).send({ status: false, message: "Invalid user id" })
+        if(!isValid(userId))return res.status(400).send({status:false, message:"User id is empty"})
         //----------------------------VALIDATE CART ID---------------------//
         if(!data.cartId) return res.status(400).send({ status: false, message: "Cart id is required " })
         if(!isValidObjectId(data.cartId)) return res.status(400).send({ status: false, message: "Invalid card id" })
@@ -67,11 +68,10 @@ const updateOrder = async function(req,res){
 
 
         let findOrder = await orderModel.findOne(({_id: orderId}))
-        if(!findOrder) return res.status(400).send({status:false,message:'no order found '})
+        if(!findOrder) return res.status(404).send({status:false,message:'no order found '})
 
         if(findOrder.userId.valueOf() !== userId){
-            console.log(findOrder.userId.valueOf())
-            console.log(userId)
+           
             return res.status(400).send({status:false,message:'orderid does not belongs to userid '})
         }
 
@@ -80,9 +80,9 @@ const updateOrder = async function(req,res){
         }
 
 
-          if(!isValid(status))return res.status(400).send({status:false,message:'status is required'})
+          if(!isValid(status))return res.status(400).send({status:false,message:'status is empty'})
 
-          if(!(["pending", "completed", "cancelled"].includes(status)))return res.status(400).send({status:false,message:"order status should be 'pending', 'completed', 'cancelled'"})
+          if(!(["pending", "completed", "cancelled"].includes(status)))return res.status(400).send({status:false,message:"order status should be 'pending'/'completed'/'cancelled'"})
 
         if(findOrder.status=="cancelled"){
 

@@ -16,7 +16,7 @@ const isValidName = function(name){
 }
 
 const isValidPincode = function(num){
-    return /^[0-9]{6}$/.test(num)
+    return /^[1-9]{1}[0-9]{2}[0-9]{3}$/.test(num)
    
   }
   
@@ -35,6 +35,8 @@ const isValidPincode = function(num){
   const isValidObjectId = function(ObjectId) {
     return mongoose.Types.ObjectId.isValid(ObjectId)
   }
+
+ 
   
 
 
