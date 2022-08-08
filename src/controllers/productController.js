@@ -103,18 +103,23 @@ const findProduct = async function (req, res) {
         }
 
         if (priceLessThan !== undefined && priceGreaterThan == undefined) {
+            if(isNaN(priceLessThan))return res.status(400).send({status:false, message:"PriceLessThan value should be number only"})
             filterValueObject.price = { $lt: priceLessThan }
         }
 
         if (priceLessThan !== undefined && priceGreaterThan !== undefined) {
+            if(isNaN(priceLessThan))return res.status(400).send({status:false, message:"PriceLessThan value should be number only"})
+            if(isNaN(priceGreaterThan))return res.status(400).send({status:false, message:"PriceGreaterThan value should be number only"})
             filterValueObject.price = { $lt: priceLessThan, $gt: priceGreaterThan }
         }
 
         if (priceGreaterThan !== undefined && priceLessThan == undefined) {
+            if(isNaN(priceGreaterThan))return res.status(400).send({status:false, message:"PriceGreaterThan value should be number only"})
             filterValueObject.price = { $gt: priceGreaterThan }
         }
         let sortDocu = {}
         if (priceSort !== undefined) {
+            if(![1,-1].includes(priceSort)) return res.status(400).send({status:false, message:"You can only sort by 1 or -1"})
             if (priceSort == 1) {
                 sortDocu.priceSort = priceSort
             }
@@ -291,7 +296,7 @@ const updateProduct = async function (req, res) {
 
             updatedProductDetails['installments'] = installments
         }
-        if(files){
+        if(files.length>0){
         let mimetype = files[0].mimetype.split("/") //---["image",""]
         if (mimetype[0] !== "image") return res.status(400).send({ status: false, message: "Please Upload the Image File only" })
         if (files && files.length > 0) var uploadedFileURL = await awsController.uploadFile(files[0])

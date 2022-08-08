@@ -202,8 +202,8 @@ const updateCart = async function (req, res) {
         }
 
         //-----------------------Update Product in cart---------------------//     
-        // if (removeProduct != 0 || removeProduct != 1) return res.status(400).send
-        // ({ status: false, message: "you can only enter removeProduct value either 1 or 0" })
+        if (removeProduct != 0 || removeProduct != 1) return res.status(400).send
+        ({ status: false, message: "you can only enter removeProduct value either 1 or 0" })
         if (removeProduct === 1) {
 
             cart.items[findProductIndex].quantity -= 1

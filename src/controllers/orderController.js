@@ -101,7 +101,7 @@ const updateOrder = async function(req,res){
           }
 
           const updateOrder = await orderModel.findOneAndUpdate({_id:orderId},{status:status},{new:true})
-           return res.status(200).send({status:true,message:'order update succesfully',data:updateOrder})
+           return res.status(200).send({status:true,message:'order update succesfully'})
 
     }
 

@@ -9,7 +9,7 @@ const {authentication, authorization} = require('../middlewares/auth')
 //**************USER APIs*********************//
 router.post('/register', userRegistration );
 router.post('/login', loginUser);
-router.get('/user/:userId/profile',authentication, getUser);
+router.get('/user/:userId/profile',authorization, getUser);
 router.put('/user/:userId/profile',authorization, updateUser);
 
 //**************PRODUCT APIs*********************//
@@ -20,7 +20,7 @@ router.put('/products/:productId', updateProduct);
 router.delete('/products/:productId',deleteProductById);
 
 //**************CART APIs*************************//
-router.post('/users/:userId/cart',addToCart)
+router.post('/users/:userId/cart',authorization, addToCart)
 router.get('/users/:userId/cart',authentication, getCart)
 router.delete('/users/:userId/cart',authorization, deleteCart)
 router.put('/users/:userId/cart',authorization, updateCart)

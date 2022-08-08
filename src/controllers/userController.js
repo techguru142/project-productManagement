@@ -284,6 +284,7 @@ const updateUser = async function (req, res) {
             if (address.shipping !== undefined) {
 
                 if (address.shipping.street !== undefined) {
+                    if (!isNaN(address.shipping.street))return res.status(400).send({ status: false, message: "Shipping street can not be number only" })
                     if (
                         !isValid(address.shipping.street)
                     ) {
@@ -302,6 +303,7 @@ const updateUser = async function (req, res) {
                             .join(" ");
                 }
                 if (address.shipping.city != undefined) {
+                    if (!isNaN(address.shipping.city)) return res.status(400).send({ status: false, message: "Shipping city can not be number only" })
                     if (
                         !isValid(address.shipping.city)
                     ) {
@@ -337,8 +339,10 @@ const updateUser = async function (req, res) {
 
 
             if (address.billing !== undefined) {
-
+              
                 if (address.billing.street !== undefined) {
+                    
+                    if (!isNaN(address.billing.street))return res.status(400).send({ status: false, message: "Billing street can not be number only" })
                     if (
                         !isValid(address.billing.street )
                     ) {
@@ -357,6 +361,7 @@ const updateUser = async function (req, res) {
                             .join(" ");
                 }
                 if (address.billing.city != undefined) {
+                    if (!isNaN(address.billing.city)) return res.status(400).send({ status: false, message: "Billing city can not be number only" })
                     if (
                         !isValid(address.billing.city)
                     ) {
