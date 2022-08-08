@@ -119,7 +119,7 @@ const findProduct = async function (req, res) {
         }
         let sortDocu = {}
         if (priceSort !== undefined) {
-            if(![1,-1].includes(priceSort)) return res.status(400).send({status:false, message:"You can only sort by 1 or -1"})
+            if(![1,-1,'1','-1'].includes(priceSort)) return res.status(400).send({status:false, message:"You can only sort by 1 or -1"})
             if (priceSort == 1) {
                 sortDocu.priceSort = priceSort
             }
@@ -324,7 +324,7 @@ const deleteProductById = async function (req, res) {
             return res.status(404).send({ status: false, message: 'no product found' })
         }
         const deleteProduct = await productModel.findByIdAndUpdate(checkProductInDb._id, { $set: { isDeleted: true, deletedAt: new Date() } })
-        return res.status(200).send({ status: true, message: 'Product Deleted', data:deleteProduct})
+        return res.status(200).send({ status: true, message: 'Product Deleted successfully'})
     } catch (err) {
         return res.status(500).send({ status: false, message: err.message });
     }
